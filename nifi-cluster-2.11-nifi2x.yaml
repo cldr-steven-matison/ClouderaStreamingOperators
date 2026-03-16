@@ -1,0 +1,44 @@
+apiVersion: cfm.cloudera.com/v1alpha1
+kind: Nifi
+metadata:
+  name: mynifi
+  namespace: cfm-streaming
+spec:
+  replicas: 1
+  nifiVersion: "2.4.0"
+  image:
+    repository: container.repository.cloudera.com/cloudera/cfm-nifi-k8s
+    tag: 2.11.0-b57-nifi_2.4.0.4.3.3.0-40
+    pullSecret: cloudera-creds
+  tiniImage:
+    repository: container.repository.cloudera.com/cloudera/cfm-tini
+    tag: 2.11.0-b57
+    pullSecret: cloudera-creds
+  hostName: mynifi.localhost
+  uiConnection:
+    type: Ingress
+  configOverride:
+    # Based on the error, we pass properties as a block or use the 2.11 'upsert' pattern
+    nifiProperties:
+      upsert:
+        nifi.cluster.leader.election.implementation: "KubernetesLeaderElectionManager"
+    authorizers: |
+      <authorizers>
+        <authorizer>
+          <identifier>single-user-authorizer</identifier>
+          <class>org.apache.nifi.authorization.single.user.SingleUserAuthorizer</class>
+        </authorizer>
+      </authorizers>
+    loginIdentityProviders: |
+      <loginIdentityProviders>
+        <provider>
+          <identifier>single-user-provider</identifier>
+          <class>org.apache.nifi.authentication.single.user.SingleUserLoginIdentityProvider</class>
+          <property name="Username">admin</property>
+          <property name="Password">$2b$10$GRa8g9Z5rBENXPFNHFBosev9XmY6CSk0SdcBi5sQMRX92KD73asGG</property>
+        </provider>
+      </loginIdentityProviders>
+  stateManagement:
+    clusterProvider:
+      id: kubernetes-provider
+      class: org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider
