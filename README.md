@@ -2,24 +2,24 @@
 This reposistory is used in installing [Cloudera Streaming Operators](https://cldr-steven-matison.github.io/blog/Cloudera-Streaming-Operators/).
 
 
-### Prerequisites
+## Prerequisites
   
 * [Docker]()
 * [Minikube]()
 * [Helm]()
 * [Cloudera Operator License]()
   
-### Resources
+## Resources
 
 * [Cloudera Streams Messaging (CSM) 1.6 Docs](https://docs.cloudera.com/csm-operator/1.6/index.html)
 * [Cloudera Streaming Analytics (CSA) 1.5 Docs](https://docs.cloudera.com/csa-operator/1.5/index.html)
 * [Cloudera Flow Management (CFM) 3.0 Docs](http://docs.cloudera.com/cfm-operator/3.0.0/index.html)
 
 
-### Required Terminal Commands
+## Terminal Commands
 
 
-## Minkube and Helm
+### Minkube and Helm
 ```terminal
 # Start minikube
 minikube start --memory 16384 --cpus 6
@@ -34,7 +34,7 @@ helm registry login container.repository.cloudera.com
 helm repo update
 ```
 
-## Setup Namespaces & Secrets
+### Setup Namespaces & Secrets
 ```terminal
 kubectl create namespace cld-streaming
 kubectl create secret generic cfm-operator-license --from-file=license.txt=./license.txt -n cld-streaming
@@ -44,12 +44,12 @@ kubectl create secret generic cfm-operator-license --from-file=license.txt=./lic
 kubectl create secret docker-registry cloudera-creds --docker-server=container.repository.cloudera.com --docker-username=[username] --docker-password=[password] -n cfm-streaming
 ```
 
-# Install Kafka Cloudera Strimzi Operator
+### Install Kafka Cloudera Strimzi Operator
 ```terminal
 helm install strimzi-cluster-operator --namespace cld-streaming --set 'image.imagePullSecrets[0].name=cloudera-creds' --set-file clouderaLicense.fileContent=./license.txt --set watchAnyNamespace=true oci://container.repository.cloudera.com/cloudera-helm/csm-operator/strimzi-kafka-operator --version 1.6.0-b99
 ```
 
-# Install Flink CSA Operator
+### Install Flink CSA Operator
 ```terminal
 kubectl create -f https://github.com/jetstack/cert-manager/releases/download/v1.8.2/cert-manager.yaml
 kubectl wait -n cert-manager --for=condition=Available deployment --all
@@ -63,7 +63,7 @@ helm install csa-operator --namespace cld-streaming \
     oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator 
 ```
 
-# Install NiFI CFM Operator
+### Install NiFI CFM Operator
 ```terminal
 helm install cfm-operator oci://container.repository.cloudera.com/cloudera-helm/cfm-operator/cfm-operator \
   --namespace cfm-streaming \
@@ -79,22 +79,22 @@ helm install cfm-operator oci://container.repository.cloudera.com/cloudera-helm/
   --set-file clouderaLicense.fileContent=./license.txt
 ```
 
-# Install NiFi 1.28.1 CR
+### Install NiFi 1.28.1 CR
 ```terminal
 kubectl apply -f nifi-cluster-2.11-nifi1x.yaml -n cfm-streaming
 ```
 
-# Install NiFi 2.4.0 CR
+### Install NiFi 2.4.0 CR
 ```terminal
 kubectl apply -f nifi-cluster-2.11-nifi2x.yaml -n cfm-streaming
 ```
 
-# Install Kafka 
+### Install Kafka 
 ```terminal
 kubectl apply --filename kafka-eval.yaml,kafka-nodepool.yaml --namespace cld-streaming
 ```
 
-# Open the UIs
+### Open the UIs
 ```terminal
 minikube service mynifi-web --namespace cfm-streaming
 minikube service cloudera-surveyor-service --namespace cld-streaming
@@ -102,7 +102,7 @@ minikube service schema-registry-service --namespace cld-streaming
 minikube service ssb-sse --namespace cld-streaming
 ```
 
-# Uninstall Commands
+### Uninstall Commands
 ```terminal
 helm uninstall cfm-operator --namespace cld-streaming
 helm uninstall cloudera-surveyor --namespace cld-streaming
