@@ -17,7 +17,7 @@ This reposistory is used in installing [Cloudera Streaming Operators](https://cl
 
 ## Terminal Commands
 
-### Minkube and Helm
+### Minikube and Helm
 ```terminal
 # Start minikube
 minikube start --memory 16384 --cpus 6
