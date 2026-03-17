@@ -4,10 +4,10 @@ This reposistory is used in installing [Cloudera Streaming Operators](https://cl
 
 ## Prerequisites
   
-* [Docker]()
-* [Minikube]()
-* [Helm]()
-* [Cloudera Operator License]()
+* [Docker](https://docs.docker.com/desktop/)
+* [Minikube](https://minikube.sigs.k8s.io/docs/)
+* [Helm](https://helm.sh/)
+* [Cloudera Operator License](https://lighthouse.cloudera.com/)
   
 ## Resources
 
@@ -15,9 +15,7 @@ This reposistory is used in installing [Cloudera Streaming Operators](https://cl
 * [Cloudera Streaming Analytics (CSA) 1.5 Docs](https://docs.cloudera.com/csa-operator/1.5/index.html)
 * [Cloudera Flow Management (CFM) 3.0 Docs](http://docs.cloudera.com/cfm-operator/3.0.0/index.html)
 
-
 ## Terminal Commands
-
 
 ### Minkube and Helm
 ```terminal
