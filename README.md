@@ -88,6 +88,25 @@ helm install cfm-operator oci://container.repository.cloudera.com/cloudera-helm/
 kubectl apply --filename kafka-eval.yaml,kafka-nodepool.yaml --namespace cld-streaming
 ```
 
+### Install Schema Registry 
+```terminal
+helm install schema-registry \
+--namespace cld-streaming \
+--version 1.6.0-b99 \
+--values sr-values.yaml \
+--set "image.imagePullSecrets[0].name=cloudera-creds" \
+oci://container.repository.cloudera.com/cloudera-helm/csm-operator/schema-registry 
+```
+
+### Install Surveyor 
+```terminal
+helm install cloudera-surveyor oci://container.repository.cloudera.com/cloudera-helm/csm-operator/surveyor \
+  --namespace cld-streaming \
+  --version 1.6.0-b99 \
+  --values kafka-surveyor.yaml \
+  --set image.imagePullSecrets=cloudera-creds \
+  --set-file clouderaLicense.fileContent=./license.txt
+```
 
 ### Install NiFi
 
