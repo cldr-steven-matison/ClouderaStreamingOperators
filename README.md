@@ -94,10 +94,12 @@ kubectl apply --filename kafka-eval.yaml,kafka-nodepool.yaml --namespace cld-str
 ```
 
 ### Open the UIs
+
+#### NiFi
 ```terminal
 minikube service mynifi-web --namespace cfm-streaming
 ```
-#### Cloudera Surveyor
+#### Surveyor
 ```terminal
 minikube service cloudera-surveyor-service --namespace cld-streaming
 ```
