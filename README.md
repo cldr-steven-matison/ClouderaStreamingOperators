@@ -145,11 +145,16 @@ kubectl get endpoints mynifi-web -n cfm-streaming
 
 ### Open the UIs
 
-#### NiFi CFM 2.11
+#### NiFi CFM 3.0 Secure
 ```terminal
 sudo minikube tunnel
 ```
-  Open browser to:  **URL:** `https://mynifi-web.mynifi.cfm-streaming.svc.cluster.local/nifi/`
+  Open your browser to:  **URL:** `https://mynifi-web.mynifi.cfm-streaming.svc.cluster.local/nifi/`
+
+#### NiFi CFM 2.11 Eval
+```terminal
+minikube service nifi-web --namespace cfm-streaming
+```
 
 #### Surveyor
 ```terminal
