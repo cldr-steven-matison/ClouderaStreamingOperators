@@ -151,11 +151,6 @@ sudo minikube tunnel
 ```
   Open your browser to:  **URL:** `https://mynifi-web.mynifi.cfm-streaming.svc.cluster.local/nifi/`
 
-#### NiFi CFM 2.11 Eval
-```terminal
-minikube service nifi-web --namespace cfm-streaming
-```
-
 #### Surveyor
 ```terminal
 minikube service cloudera-surveyor-service --namespace cld-streaming
