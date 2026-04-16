@@ -50,7 +50,3 @@ spec:
     clusterProvider:
       id: kubernetes-provider
       class: org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider
-  narProvider:
-    volumes:
-      - volumeClaimName: custom-nars
-  
