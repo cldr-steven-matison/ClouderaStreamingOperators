@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   name: strimzi-pod-monitor
-  namespace: monitoring
+  namespace: cld-streaming
   labels:
     # ⚠️ This MUST match the release name of your Prometheus Helm install
     release: prometheus
