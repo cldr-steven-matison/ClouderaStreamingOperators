@@ -4,12 +4,10 @@ metadata:
   name: strimzi-pod-monitor
   namespace: cld-streaming
   labels:
-    # ⚠️ This MUST match the release name of your Prometheus Helm install
     release: prometheus
 spec:
   selector:
     matchLabels:
-      # This matches the label we verified on your pod earlier
       strimzi.io/cluster: my-cluster
       strimzi.io/kind: Kafka
   namespaceSelector:
@@ -17,6 +15,22 @@ spec:
       - cld-streaming
   podMetricsEndpoints:
     - path: /metrics
-      # Strimzi names the JMX exporter port 'tcp-prometheus'
       targetPort: 9404
       interval: 30s
+      relabelings:
+        # Map Strimzi pod labels (strimzi.io/...) to top-level metric labels the dashboard expects
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(strimzi_io_.+)
+          replacement: $1
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+          replacement: $1
+        # Standard K8s labels the dashboard variables use
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: kubernetes_pod_name
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod_name
+        - sourceLabels: [__meta_kubernetes_pod_node_name]
+          targetLabel: node_name
