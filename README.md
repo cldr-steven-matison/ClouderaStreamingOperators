@@ -64,8 +64,9 @@ helm install csa-operator --namespace cld-streaming \
     --set 'ssb.sqlRunner.image.imagePullSecrets[0].name=cloudera-creds' \
     --set 'ssb.mve.image.imagePullSecrets[0].name=cloudera-creds' \
     --set 'ssb.database.imagePullSecrets[0].name=cloudera-creds' \
+    --set 'ssb.flink.image.imagePullSecrets[0].name=cloudera-creds' \
     --set-file flink-kubernetes-operator.clouderaLicense.fileContent=./license.txt \
-    oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator 
+    oci://container.repository.cloudera.com/cloudera-helm/csa-operator/csa-operator
 ```
 
 ### Install NiFI CFM Operator
