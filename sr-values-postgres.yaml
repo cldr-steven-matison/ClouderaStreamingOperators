@@ -1,0 +1,25 @@
+tls:
+  enabled: false
+authentication:
+  oauth:
+    enabled: false
+authorization:
+  simple:
+    enabled: false
+database:
+  type: postgresql
+  jdbcUrl: "jdbc:postgresql://ssb-postgresql.cld-streaming.svc:5432/registry"
+  username: "registry"
+  password:
+    secretKeyRef:
+      name: "sr-db-pass"
+      key: "password"
+service:
+  type: NodePort
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
