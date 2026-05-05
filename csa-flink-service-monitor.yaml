@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: csa-flink-metrics-monitor
+  namespace: cld-streaming
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: csa-flink-metrics
+  namespaceSelector:
+    matchNames:
+      - cld-streaming
+  endpoints:
+    - port: prom-metrics
+      interval: 15s
+      scrapeTimeout: 10s
+      relabelings:
+        # Keeps your Grafana dashboards working by mapping the pod labels correctly
+        - sourceLabels: [__meta_kubernetes_pod_label_app]
+          targetLabel: flink_deployment
+        - sourceLabels: [__meta_kubernetes_pod_label_component]
+          targetLabel: component
+        - sourceLabels: [__meta_kubernetes_pod_name]
+          targetLabel: pod
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace

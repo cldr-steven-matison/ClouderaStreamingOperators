@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: csa-flink-metrics-service
+  namespace: cld-streaming
+  labels:
+    app: csa-flink-metrics
+spec:
+  clusterIP: None  # Makes it a headless service
+  selector:
+    # This automatically captures ALL Flink pods (JobManagers & TaskManagers)
+    type: flink-native-kubernetes
+  ports:
+    - name: prom-metrics
+      port: 9249
+      targetPort: 9249
