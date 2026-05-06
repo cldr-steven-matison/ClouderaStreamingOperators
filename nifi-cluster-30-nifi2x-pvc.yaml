@@ -14,14 +14,6 @@ spec:
     repository: container.repository.cloudera.com/cloudera/cfm-tini
     tag: 3.0.0-b126
     pullSecret: cloudera-creds
-  statefulset:
-    volumes:
-    - name: python-extensions
-      hostPath:
-        path: /extensions
-    volumeMounts:
-      - name: python-extensions
-        mountPath: /opt/nifi/nifi-current/python/extensions
   hostName: mynifi-web.mynifi.cfm-streaming.svc.cluster.local
   uiConnection:
     type: Ingress
@@ -46,7 +38,6 @@ spec:
     nifiProperties:
       upsert:
         nifi.cluster.leader.election.implementation: "KubernetesLeaderElectionManager"
-        nifi.web.prometheus.metrics.authenticated: "false"
   stateManagement:
     clusterProvider:
       id: kubernetes-provider
