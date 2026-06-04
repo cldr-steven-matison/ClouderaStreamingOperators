@@ -1,0 +1,27 @@
+apiVersion: cfm.cloudera.com/v1alpha1
+kind: NifiRegistry
+metadata:
+  name: nifi-registry-edge
+  namespace: cfm-streaming
+spec:
+  image:
+    repository: container.repository.cloudera.com/cloudera/cfm-nifiregistry-k8s
+    tag: 3.0.0-b126-nifi_2.6.0.4.3.4.0-234
+  tiniImage:
+    repository: container.repository.cloudera.com/cloudera/cfm-tini
+    tag: 3.0.0-b126
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-registry-edge-svc
+  namespace: cfm-streaming
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 18080
+      targetPort: 18080
+      protocol: TCP
+  selector:
+    statefulset.kubernetes.io/pod-name: nifi-registry-edge-0
