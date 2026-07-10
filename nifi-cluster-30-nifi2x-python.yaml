@@ -14,25 +14,11 @@ spec:
     repository: container.repository.cloudera.com/cloudera/cfm-tini
     tag: 3.0.0-b126
     pullSecret: cloudera-creds
-  statefulset:
-    volumes:
-    - name: python-extensions
-      hostPath:
-        path: /extensions
-    volumeMounts:
-      - name: python-extensions
-        mountPath: /opt/nifi/nifi-current/python/extensions
   hostName: mynifi-web.mynifi.cfm-streaming.svc.cluster.local
   uiConnection:
-    type: Ingress
-    ingressConfig:
-      hostname: ""
-    annotations:
-      nginx.ingress.kubernetes.io/affinity: cookie
-      nginx.ingress.kubernetes.io/affinity-mode: persistent
-      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    type: Service
+    serviceConfig:
+      type: LoadBalancer
   security:
     initialAdminIdentity: "admin"
     nodeCertGen:
@@ -46,8 +32,21 @@ spec:
     nifiProperties:
       upsert:
         nifi.cluster.leader.election.implementation: "KubernetesLeaderElectionManager"
-        nifi.web.prometheus.metrics.authenticated: "false"
+        nifi.python.extensions.directories: "./python_extensions,/opt/nifi/nifi-current/python/extensions"
   stateManagement:
     clusterProvider:
       id: kubernetes-provider
       class: org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider
+  statefulset:
+    env:
+      - name: NIFI_PYTHON_LISTENER_STARTUP_TIMEOUT
+        value: "600 sec"
+      - name: NIFI_PYTHON_PROXIED_LOG_LEVEL
+        value: "DEBUG"
+    volumes:
+    - name: python-extensions
+      persistentVolumeClaim:
+        claimName: custom-python-extensions
+    volumeMounts:
+      - name: python-extensions
+        mountPath: /opt/nifi/nifi-current/python/extensions
