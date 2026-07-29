@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: efm
+  namespace: cld-streaming
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: efm
+  endpoints:
+  # EFM serves the Spring Boot actuator (incl. /prometheus) on the MAIN server
+  # port 10090 under the /efm servlet context path — NOT on the metrics/9092
+  # port. Field-verified 2026-07-29: 9092 accepts a TCP connection but returns
+  # an empty reply; 10090/efm/actuator/prometheus returns 1429 lines of metrics.
+  # To actually use 9092 you'd have to set management.server.port=9092 in
+  # efm.properties, which this deploy does not.
+  - port: efm-ui
+    path: /efm/actuator/prometheus
+    interval: 15s
