@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: minifi-agent-k8s
+  namespace: cld-streaming
+spec:
+  containers:
+  - name: minifi
+    image: ubuntu:22.04
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/bash", "-c"]
+    args:
+    - |
+      # 1. Install core system utilities and python build tools
+      apt-get update && apt-get install -y curl tar python3 python3-pip python3-venv python3-dev
+
+      # 2. Fix the global python symlink alias
+      ln -s /usr/bin/python3 /usr/bin/python || true
+
+      # 3. Upgrade pip and install TensorRT dependencies globally in the container
+      # Using --break-system-packages since this is a dedicated ephemeral testing container
+      python3 -m pip install --upgrade pip
+      python3 -m pip install numpy tensorrt --break-system-packages
+
+      # 4. Pull down the EFM deployment script and launch MiNiFi
+      curl -L \
+       -d agentClass=KubernetesPod \
+       -d agentIdentifier=e99e45f5-70f5-4847-af76-4f620b764aa9 \
+       -d agentType=cpp \
+       -d agentVersion=1.26.02 \
+       -d autoConfigureSecurity=false \
+       -d baseUrl=http%3A%2F%2Fefm.cld-streaming.svc%3A10090%2Fefm%2Fapi \
+       -d hbPeriod=5000 \
+       -d osArch=linux \
+       -d serviceName=minifi \
+       -d serviceUser=root \
+       -d trustSelfSignedCertificates=false \
+       http://efm.cld-streaming.svc:10090/efm/api/agent-deployer/script | bash -
+      
+      # 5. Keep container alive
+      tail -f /dev/null

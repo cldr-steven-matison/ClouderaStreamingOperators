@@ -1,0 +1,10 @@
+# Secrets — Cloudera license (PGP-signed), never commit
+license.txt
+
+# Local debug / crash captures
+debug_*.txt
+*_crash_logs.txt
+
+# macOS AppleDouble metadata
+._*
+.DS_Store

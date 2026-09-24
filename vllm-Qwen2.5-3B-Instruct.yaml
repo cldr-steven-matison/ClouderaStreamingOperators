@@ -15,7 +15,8 @@ spec:
       serviceAccountName: vllm-server
       containers:
       - name: vllm-server
-        image: vllm/vllm-openai:latest
+        image: vllm/vllm-openai:v0.25.0  # pinned: v0.25.1 requires CUDA UVA, unavailable under WSL2 GPU passthrough
+        imagePullPolicy: IfNotPresent
         tty: true                      # <--- CRITICAL: Allocates a pseudo-TTY for shell execution
         stdin: true                    # <--- CRITICAL: Keeps the input stream open for commands
         ports:
@@ -26,6 +27,10 @@ spec:
             secretKeyRef:
               name: hf-token
               key: HF_TOKEN
+        - name: VLLM_USE_V1
+          value: "0"
+        - name: VLLM_WSL2_ENABLE_PIN_MEMORY
+          value: "1"
         resources:
           limits:
             nvidia.com/gpu: 1

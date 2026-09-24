@@ -8,7 +8,7 @@ spec:
   nifiVersion: "2.6.0"
   image:
     repository: container.repository.cloudera.com/cloudera/cfm-nifi-k8s
-    tag: 3.0.0-b126-nifi_2.6.0.4.3.4.0-234
+    tag: 3.0.0-b126-nifi_1.28.1.2.3.17.0-9
     pullSecret: cloudera-creds
   tiniImage:
     repository: container.repository.cloudera.com/cloudera/cfm-tini
@@ -16,15 +16,9 @@ spec:
     pullSecret: cloudera-creds
   hostName: mynifi-web.mynifi.cfm-streaming.svc.cluster.local
   uiConnection:
-    type: Ingress
-    ingressConfig:
-      hostname: ""
-    annotations:
-      nginx.ingress.kubernetes.io/affinity: cookie
-      nginx.ingress.kubernetes.io/affinity-mode: persistent
-      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    type: Service
+    serviceConfig:
+      type: LoadBalancer
   security:
     initialAdminIdentity: "admin"
     nodeCertGen:

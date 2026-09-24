@@ -22,7 +22,6 @@ spec:
         image: container.repo.cloudera.com/cloudera/efm:2.3.1.0-2
         ports:
         - containerPort: 10090
-        - containerPort: 9092
         env:
         - name: EF_DB_URL
           value: "jdbc:postgresql://ssb-postgresql.cld-streaming.svc:5432/efm"
@@ -56,10 +55,15 @@ spec:
         volumeMounts:
         - name: agent-binaries
           mountPath: /opt/efm/efm-2.3.1.0-2/agent-deployer/binaries
+        - name: efm-resources
+          mountPath: /opt/efm/efm-2.3.1.0-2/resources
       volumes:
       - name: agent-binaries
         persistentVolumeClaim:
           claimName: efm-agent-binaries
+      - name: efm-resources
+        persistentVolumeClaim:
+          claimName: efm-resources
 
 ---
 
@@ -77,9 +81,5 @@ spec:
     targetPort: 10090
     protocol: TCP
     name: efm-ui
-  - port: 9092
-    targetPort: 9092
-    protocol: TCP
-    name: metrics
   selector:
     app: efm

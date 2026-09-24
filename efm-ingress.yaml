@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: efm
+  namespace: cld-streaming
+  annotations:
+    nginx.ingress.kubernetes.io/app-root: /efm/ui
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: efm
+            port:
+              number: 10090

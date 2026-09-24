@@ -5,7 +5,7 @@ metadata:
   name: mynifi-web
   namespace: cfm-streaming
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     # Matching your specific pod labels
     app.kubernetes.io/instance: mynifi
@@ -19,7 +19,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: mynifi-ingress
+  name: mynifi-web
   namespace: cfm-streaming
   annotations:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-nar-pv
+  labels:
+    type: local
+spec:
+  storageClassName: "" # Matches the PVC to allow binding
+  capacity:
+    storage: 100Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/tmp/nifi-nars"
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nifi-nar-pvc
+  namespace: cfm-streaming
+spec:
+  storageClassName: "" # Must match the PV exactly
+  volumeName: nifi-nar-pv # Explicitly binds to your created PV
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Mi

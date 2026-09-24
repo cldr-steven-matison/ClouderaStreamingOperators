@@ -8,12 +8,20 @@ spec:
   nifiVersion: "2.6.0"
   image:
     repository: container.repository.cloudera.com/cloudera/cfm-nifi-k8s
-    tag: 3.0.0-b126-nifi_2.6.0.4.3.4.0-234
+    tag: 3.0.0-b126-nifi_1.28.1.2.3.17.0-9
     pullSecret: cloudera-creds
   tiniImage:
     repository: container.repository.cloudera.com/cloudera/cfm-tini
     tag: 3.0.0-b126
     pullSecret: cloudera-creds
+  statefulset:
+    volumes:
+    - name: midi-inbox
+      hostPath:
+        path: /home/tuna/midi_inbox
+    volumeMounts:
+      - name: midi-inbox
+        mountPath: /mnt/midi_inbox
   hostName: mynifi-web.mynifi.cfm-streaming.svc.cluster.local
   uiConnection:
     type: Ingress
@@ -42,6 +50,3 @@ spec:
     clusterProvider:
       id: kubernetes-provider
       class: org.apache.nifi.kubernetes.state.provider.KubernetesConfigMapStateProvider
-#  narProvider:
-#    volumes:
-#      - volumeClaimName: nifi-nar-pvc
