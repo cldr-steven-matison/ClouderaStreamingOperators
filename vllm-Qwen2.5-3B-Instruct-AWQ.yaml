@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-server
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate                 # 4060 has ONE GPU: old pod must release it before the new one starts
+  selector:
+    matchLabels:
+      app: vllm-server
+  template:
+    metadata:
+      labels:
+        app: vllm-server
+    spec:
+      serviceAccountName: vllm-server
+      containers:
+      - name: vllm-server
+        image: vllm/vllm-openai:v0.25.0  # pinned: v0.25.1 requires CUDA UVA, unavailable under WSL2 GPU passthrough
+        imagePullPolicy: IfNotPresent
+        tty: true
+        stdin: true
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: HF_TOKEN
+        - name: VLLM_USE_V1
+          value: "0"
+        - name: VLLM_WSL2_ENABLE_PIN_MEMORY
+          value: "1"
+        - name: HF_HOME
+          value: /hf-cache            # persist weights so a restart (this box loses the GPU on reboot) skips the ~5.5 GB re-download
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        args:
+        - "Qwen/Qwen2.5-3B-Instruct-AWQ"
+        - "--quantization"
+        - "awq_marlin"                # AWQ 4-bit 3B; shares the card with whisper-large-v3 on GPU (#382)
+        - "--gpu-memory-utilization"
+        - "0.45"                      # ~3.7 GB: 3B-AWQ weights ~2 GB + 8K KV; leaves room for whisper fp16. Start vLLM FIRST, then whisper (#312 order)
+        - "--max-model-len"
+        - "8192"                      # app-serving default; Hermes runs on its own GPU borrow (#395)
+        - "--enable-chunked-prefill"
+        - "--enforce-eager"           # WSL2: CUDA graphs unreliable under GPU passthrough
+        - "--enable-auto-tool-choice"
+        - "--tool-call-parser"
+        - "hermes"                    # was qwen3_coder (broken for Qwen: raw <tool_call> text, tool_calls:null; #231/#244)
+        volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        - name: hf-cache
+          mountPath: /hf-cache
+      volumes:
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: "2Gi"
+      - name: hf-cache
+        persistentVolumeClaim:
+          claimName: vllm-hf-cache
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-hf-cache
+  namespace: default
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 30Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-service
+  namespace: default
+spec:
+  selector:
+    app: vllm-server
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
