@@ -1,0 +1,104 @@
+# Dedicated vLLM for the Hermes Agent, on the ON-DEMAND GPU-BORROW pattern (#374-style).
+# Normally replicas=0. files/windowsdesktop-hermes-gpu.sh scales prod vllm-server->0 and this->1
+# for a Hermes session, then reverses it. It NEVER co-resides with prod on the 8 GB 4060.
+# Model: Llama-3.2-3B-Instruct-AWQ (128K native ctx, ungated) at 64K with an fp8 KV cache so it
+# fits: ~2 GB weights + ~3.7 GB KV(64K,fp8) + overhead ~= 6.3 GB, under the ~6.9 GB really free.
+# NOTE: if Hermes tool *execution* misbehaves (model prints a tool call as raw text instead of it
+# running), swap to Qwen2.5-3B-Instruct-AWQ + --tool-call-parser hermes + YaRN 64K -- Qwen emits the
+# <tool_call> format Hermes parses. Left on Llama since interactive TUI testing worked (2026-09-25).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes-vllm
+  namespace: default
+spec:
+  replicas: 0                      # OFF by default; the borrow script owns the 0<->1 flip
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: hermes-vllm
+  template:
+    metadata:
+      labels:
+        app: hermes-vllm
+    spec:
+      containers:
+      - name: hermes-vllm
+        image: vllm/vllm-openai:v0.25.0   # pinned: v0.25.1 needs CUDA UVA, unavailable under WSL2
+        imagePullPolicy: IfNotPresent
+        tty: true
+        stdin: true
+        ports:
+        - containerPort: 8000
+        env:
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: HF_TOKEN
+        - name: VLLM_USE_V1
+          value: "0"
+        - name: VLLM_WSL2_ENABLE_PIN_MEMORY
+          value: "1"
+        - name: HF_HOME
+          value: /hf-cache
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        args:
+        - "AMead10/Llama-3.2-3B-Instruct-AWQ"
+        - "--served-model-name"
+        - "Llama-3.2-3B-Instruct-AWQ"     # short id Hermes config points at
+        - "--quantization"
+        - "awq_marlin"
+        - "--gpu-memory-utilization"
+        - "0.82"                          # owns the card during a borrow; fits under ~6.9 GB really free (WDDM ~1 GB)
+        - "--max-model-len"
+        - "65536"                         # Hermes Agent requires >=64K; Llama-3.2 is 128K native (no YaRN)
+        - "--kv-cache-dtype"
+        - "fp8"                           # halves KV so 64K fits alongside the weights on 8 GB (Ada sm_89)
+        - "--enable-chunked-prefill"
+        - "--enforce-eager"               # WSL2: CUDA graphs unreliable under GPU passthrough
+        - "--enable-auto-tool-choice"
+        - "--tool-call-parser"
+        - "llama3_json"                   # Llama-3.2 tool format -> OpenAI tool_calls (NOT hermes, which is Qwen's)
+        volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        - name: hf-cache
+          mountPath: /hf-cache
+      volumes:
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: "2Gi"
+      - name: hf-cache
+        persistentVolumeClaim:
+          claimName: hermes-hf-cache
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hermes-hf-cache
+  namespace: default
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 15Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-vllm-service
+  namespace: default
+spec:
+  selector:
+    app: hermes-vllm
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
